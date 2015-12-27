@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+.link line {
+  stroke: #696969;
+}
+
+.link line.separator {
+  stroke: #fff;
+  stroke-width: 2px;
+}
+
+.node circle {
+  stroke: #000;
+  stroke-width: 1.5px;
+}
+
+.node text {
+  font: 10px sans-serif;
+}
+
+</style>
+<body>
+<script src="http://d3js.org/d3.v2.min.js?2.9.6"></script>
+<script>
+
+var width = 960,
+    height = 600;
+
+var color = d3.scale.category20();
+
+var radius = d3.scale.sqrt()
+    .range([0, 6]);
+
+var svg = d3.select("body").append("svg")
+    .attr("width", width)
+    .attr("height", height);
+
+var force = d3.layout.force()
+    .size([width, height])
+    .charge(-400)
+    .linkDistance(function(d) { return radius(d.source.size) + radius(d.target.size) + d.target.size/2 + 20; });
+
+var graph = {
+  "nodes": [
+    {"id": 0, "color":"#00DDAA", "atom": "Tribe12", "size": 75, "link":"http://www.tribe12.org" },
+    {"id": 1, "color":"#00DDAA", "atom": "Collaborative", "size": 30, "link":"http://www.thecollaborative.org" },
+    {"id": 2, "color":"#00DDAA", "atom": "Spectrum", "size": 15, "link":"http://www.spectrumphilly.org" },
+    {"id": 3, "color":"#00DDAA", "atom": "Fellowship", "size": 25, "link":"http://www.tribe12.org/tribe12fellowship" },
+    {"id": 4, "color":"#BF00FF", "atom": "Federation", "size": 300, "link":"http://www.jewishphilly.org" },
+    {"id": 5, "color":"#BF00FF", "atom": "Ren", "size": 20, "link":"https://www.jewishphilly.org/get-involved/federation-groups/renaissance-group" },
+    {"id": 6, "color":"#00ff00", "atom": "NMAJH", "size": 15, "link":"http://www.nmajh.org" },
+    {"id": 7, "color":"#FACC2E", "atom": "AEPi", "size": 25, "link":"http://www.phillyaepi.org" },
+    {"id": 8, "color":"#FE2E2E", "atom": "Challah", "size": 25, "link":"http://www.challahforhunger.org" },
+    {"id": 9, "color":"#088A29", "atom": "Moishe House", "size": 35, "link":"http://www.moishehouse.org/houses/philadelphia" },
+    {"id": 10, "color":"#A4A4A4", "atom": "Chevra", "size": 20, "link":"http://www.chevra.net" },
+    {"id": 11, "color":"#035996", "atom": "Hillel of Greater Phila", "size": 100, "link":"http://www.phillyhillel.org" },
+    {"id": 12, "color":"#035996", "atom": "Grad Network", "size": 40, "link":"http://www.phillyhillel.org" },
+    {"id": 13, "color":"#035996", "atom": "Drexel Hillel", "size": 30, "link":"http://www.phillyhillel.org" },
+    {"id": 14, "color":"#035996", "atom": "Temple Hillel", "size": 30, "link":"http://www.phillyhillel.org" },
+    {"id": 15, "color":"#035996", "atom": "UPenn Hillel", "size": 35, "link":"http://www.phillyhillel.org" }
+  ],
+  "links": [
+    {"source": 0, "target": 1,  "bond": 2},
+    {"source": 0, "target": 2,  "bond": 2},
+    {"source": 0, "target": 3,  "bond": 2},
+    {"source": 0, "target": 4,  "bond": 1},
+    {"source": 4, "target": 5,  "bond": 2},
+    {"source": 4, "target": 6,  "bond": 1},
+    {"source": 7, "target": 3, "bond": 1},
+    {"source": 4, "target": 11, "bond": 1},
+    {"source": 4, "target": 9,  "bond": 1},
+    {"source": 4, "target": 10,  "bond": 1},
+    {"source": 8, "target": 3,  "bond": 1},
+    {"source": 11, "target": 12,  "bond": 2},
+    {"source": 11, "target": 13,  "bond": 2},
+    {"source": 11, "target": 14,  "bond": 2},
+    {"source": 11, "target": 15,  "bond": 2},
+  ]
+};
+
+build(graph);
+
+function build(graph) {
+  force
+      .nodes(graph.nodes)
+      .links(graph.links)
+      .on("tick", tick)
+      .start();
+
+  var link = svg.selectAll(".link")
+      .data(graph.links)
+    .enter().append("g")
+      .attr("class", "link");
+
+  link.append("line")
+      .style("stroke-width", function(d) { return (d.bond * 2 - 1) * 2 + "px"; });
+
+  link.filter(function(d) { return d.bond > 1; }).append("line")
+      .attr("class", "separator");
+
+  var node = svg.selectAll(".node")
+      .data(graph.nodes)
+    .enter().append("g")
+      .attr("class", "node")
+      .call(force.drag);
+
+  node.append("circle")
+      .attr("r", function(d) { return radius(d.size); })
+      .style("fill", function(d) { return d.color; });
+
+  node.append("a").attr("xlink:href",function(d)
+  {
+    return d.link
+    }).attr("target","_blank").append("text")
+      .attr("dy", ".35em")
+      .attr("text-anchor", "middle")
+      .text(function(d) { return d.atom; });
+
+  function tick() {
+    link.selectAll("line")
+        .attr("x1", function(d) { return d.source.x; })
+        .attr("y1", function(d) { return d.source.y; })
+        .attr("x2", function(d) { return d.target.x; })
+        .attr("y2", function(d) { return d.target.y; });
+
+    node.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+  }
+};
+</script>
